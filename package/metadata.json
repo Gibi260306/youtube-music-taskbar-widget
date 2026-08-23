@@ -1,0 +1,19 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Gibi"
+            }
+        ],
+        "Category": "Multimedia",
+        "Description": "A compact taskbar controller with album art, track information and playback controls",
+        "EnabledByDefault": true,
+        "Icon": "applications-multimedia",
+        "Id": "com.gibi.youtubemusictaskbar",
+        "License": "GPL-3.0-or-later",
+        "Name": "YouTube Music Taskbar",
+        "Version": "1.2.2"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
