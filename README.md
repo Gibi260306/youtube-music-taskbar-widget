@@ -1,5 +1,5 @@
 # YouTube Music Taskbar
-##This was made using ChatGPT##
+This was made with the help of Chatgbt
 
 A compact KDE Plasma 6 media widget for YouTube Music and other MPRIS-compatible players.
 
