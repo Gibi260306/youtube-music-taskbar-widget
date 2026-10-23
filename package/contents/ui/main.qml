@@ -5,6 +5,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import QtQml.Models
 
 import org.kde.kirigami 2 as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents
@@ -19,7 +20,10 @@ PlasmoidItem {
     switchWidth: Kirigami.Units.gridUnit * 14
     switchHeight: Kirigami.Units.gridUnit * 10
 
-    readonly property var player: mprisModel.currentPlayer
+    // Prefer the companion's dedicated Music tab, even when another Firefox
+    // tab starts playing. Generic MPRIS remains available for native players.
+    property var tabPlayer: null
+    readonly property var player: tabPlayer ?? mprisModel.currentPlayer
     readonly property bool hasPlayer: player !== null && player !== undefined
     readonly property string track: player?.track ?? ""
     readonly property string artist: player?.artist ?? ""
@@ -38,6 +42,8 @@ PlasmoidItem {
     readonly property double position: player?.position ?? 0
     readonly property double length: player?.length ?? 0
     readonly property real volume: player?.volume ?? 0
+    readonly property bool needsTabBridge: hasPlayer && !tabPlayer && isBrowserPlayer(player)
+    readonly property bool canChangeVolume: hasPlayer && canControl && !needsTabBridge
 
     Plasmoid.icon: isPlaying ? "media-playback-playing" : "applications-multimedia"
     Plasmoid.status: hasPlayer ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.PassiveStatus
@@ -449,17 +455,35 @@ PlasmoidItem {
                         from: 0
                         to: 1
                         stepSize: 0.01
-                        value: root.volume
-                        enabled: root.hasPlayer && root.canControl
+                        value: 0
+                        enabled: root.canChangeVolume
                         onMoved: root.setVolume(value)
+
+                        Binding {
+                            target: volumeSlider
+                            property: "value"
+                            value: root.volume
+                            when: !volumeSlider.pressed
+                            restoreMode: Binding.RestoreNone
+                        }
                     }
 
                     PlasmaComponents.Label {
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 2.5
                         horizontalAlignment: Text.AlignRight
-                        text: Math.round(root.volume * 100) + "%"
+                        text: root.needsTabBridge ? "—"
+                            : Math.round((volumeSlider.pressed ? volumeSlider.value : root.volume) * 100) + "%"
                         color: Kirigami.Theme.disabledTextColor
                     }
+                }
+
+                PlasmaComponents.Label {
+                    Layout.fillWidth: true
+                    visible: root.needsTabBridge
+                    text: "Connect the Firefox companion to control YouTube Music’s own volume. See the repository setup guide."
+                    wrapMode: Text.Wrap
+                    color: Kirigami.Theme.disabledTextColor
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 }
 
                 PlasmaComponents.Label {
@@ -506,13 +530,13 @@ PlasmoidItem {
     }
 
     function changeVolume(delta) {
-        if (hasPlayer && canControl) {
-            player.changeVolume(delta, false);
+        if (canChangeVolume) {
+            setVolume(volume + delta);
         }
     }
 
     function setVolume(newVolume) {
-        if (hasPlayer && canControl) {
+        if (canChangeVolume && Number.isFinite(newVolume)) {
             const clamped = Math.max(0, Math.min(1, newVolume));
             player.changeVolume(clamped - volume, false);
         }
@@ -522,6 +546,26 @@ PlasmoidItem {
         if (hasPlayer && canRaise) {
             player.Raise();
         }
+    }
+
+    function isBrowserPlayer(candidate) {
+        const name = ((candidate?.identity ?? "") + " "
+            + (candidate?.objectName ?? "") + " " + (candidate?.desktopEntry ?? "")).toLowerCase();
+        return /firefox|plasma-browser-integration|chromium|chrome|brave|vivaldi|opera|microsoft-edge/.test(name);
+    }
+
+    function updateTabPlayer() {
+        let found = null;
+        for (let i = 0; i < tabPlayers.count; ++i) {
+            const candidate = tabPlayers.objectAt(i)?.container;
+            if (candidate?.objectName?.startsWith("gibi_youtube_music.instance")) {
+                found = candidate;
+                if (candidate === tabPlayer) {
+                    break;
+                }
+            }
+        }
+        tabPlayer = found;
     }
 
     function formatTime(microseconds) {
@@ -557,5 +601,16 @@ PlasmoidItem {
 
     Mpris.Mpris2Model {
         id: mprisModel
+    }
+
+    Instantiator {
+        id: tabPlayers
+        model: mprisModel
+        delegate: QtObject {
+            required property var container
+            onContainerChanged: Qt.callLater(root.updateTabPlayer)
+        }
+        onObjectAdded: Qt.callLater(root.updateTabPlayer)
+        onObjectRemoved: Qt.callLater(root.updateTabPlayer)
     }
 }

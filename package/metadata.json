@@ -12,7 +12,7 @@
         "Id": "com.gibi.youtubemusictaskbar",
         "License": "GPL-3.0-or-later",
         "Name": "YouTube Music Taskbar",
-        "Version": "1.2.2"
+        "Version": "1.3.0"
     },
     "KPackageStructure": "Plasma/Applet",
     "X-Plasma-API-Minimum-Version": "6.0"
