@@ -27,6 +27,17 @@ kpackagetool6 --type Plasma/Applet --upgrade package
 - KDE Plasma 6
 - An MPRIS-compatible player, such as Firefox playing YouTube Music
 
+## YouTube Music tab volume in Firefox
+
+To control the Music website's own volume slider independently of other tabs,
+install the [Firefox companion and local bridge](browser-bridge/README.md).
+The widget prefers this dedicated Music tab connection when it is available.
+Without it, generic browser volume is disabled and the widget shows a setup hint;
+native MPRIS players keep their usual volume control.
+
+The companion is currently an unsigned test build. Temporary installation ends
+when Firefox restarts; the setup guide explains permanent signing and live tests.
+
 ## License
 
 GPL-3.0-or-later

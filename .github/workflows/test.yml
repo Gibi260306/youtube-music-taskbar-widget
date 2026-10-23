@@ -1,0 +1,24 @@
+name: Companion tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-and-bridge:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install dbus-next==0.2.3
+      - run: node --test tests/browser-bridge.test.cjs
+      - run: dbus-run-session -- python -m unittest discover -s tests -v
+      - run: git diff --check

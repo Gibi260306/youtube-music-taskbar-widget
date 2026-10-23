@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Music Taskbar Companion",
+  "version": "0.1.1",
+  "description": "Connect a YouTube Music tab to the KDE taskbar widget, including the website's own volume control.",
+  "permissions": ["nativeMessaging", "scripting", "alarms"],
+  "host_permissions": ["https://music.youtube.com/*"],
+  "background": {"scripts": ["player.js", "background.js"]},
+  "action": {"default_title": "Reconnect YouTube Music Taskbar"},
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "youtube-music-taskbar@gibi260306",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {"required": ["none"]}
+    }
+  }
+}
